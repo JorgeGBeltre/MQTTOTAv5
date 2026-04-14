@@ -394,6 +394,8 @@ If you encounter issues, please open an issue with broker version and configurat
 
 This library is licensed under the **MIT License**. See [LICENSE](LICENSE) for details.
 
+---
+
 ## Contact
 
 Author: **Jorge Gaspar Beltre Rivera**  
