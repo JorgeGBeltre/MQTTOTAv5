@@ -397,7 +397,7 @@ This library is licensed under the **MIT License**. See [LICENSE](LICENSE) for d
 ## Contact
 
 Author: **Jorge Gaspar Beltre Rivera**  
-Project: MQTTOTAv5 - For OTA Updates via MQTTv5/MQTTSv5
+Project: **MQTTOTAv5 - For OTA Updates via MQTTv5/MQTTSv5**
 
  [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/JorgeGBeltre)
  [![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/jorge-gaspar-beltre-rivera/)
