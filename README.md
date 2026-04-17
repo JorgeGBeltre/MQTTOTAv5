@@ -2,9 +2,10 @@
 
 **Secure Over-The-Air firmware updates for ESP32 over MQTT 5.0**
 
-[![Arduino Library](https://img.shields.io/badge/Arduino-Library-teal)](https://github.com/JorgeGBeltre/MQTTOTAv5)
+[![Arduino Library](https://img.shields.io/badge/Arduino-Library-teal)](https://www.arduinolibraries.info/libraries/mqttot-av5)
 [![Platform](https://img.shields.io/badge/platform-ESP32-blue)](https://www.espressif.com/en/products/socs/esp32)
-[![MQTT 5.0](https://img.shields.io/badge/MQTT-5.0-orange)](https://mqtt.org)
+[![MQTT Version](https://img.shields.io/badge/MQTT-5.0-brightgreen)](https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 ---
 
