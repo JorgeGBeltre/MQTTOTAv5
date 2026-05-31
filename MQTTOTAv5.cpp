@@ -83,7 +83,6 @@ MQTTOTAv5::MQTTOTAv5() {
   memset(_hmacKey, 0, sizeof(_hmacKey));
   mbedtls_sha256_init(&_ctx.sha256_ctx);
   mbedtls_md_init(&_ctx.hmacCtx); // BUG-01: pre-init so free() is always safe
-  _deviceID = _generateDeviceID();
 }
 
 MQTTOTAv5::~MQTTOTAv5() { _cleanupChunkedOTA(true); }
@@ -112,9 +111,8 @@ void MQTTOTAv5::begin(ESP32_MQTTv5 &mqtt, const String &device,
   Serial.println(
       "[MQTTOTAv5] Register other topic handlers via onMessage AFTER begin().");
   _mqtt->onMessageRaw([this](const String &topic, const uint8_t *payload,
-                             size_t len, uint8_t qos, bool retain,
-                             const MQTTProperties &props) {
-    _ctx.lastMsgProps = props;
+                             size_t len, uint8_t qos, bool retain) {
+    _ctx.lastMsgProps.clear();
     MQTTMessage msg;
     msg.topic = topic;
     msg.payload = String((const char *)payload, len);

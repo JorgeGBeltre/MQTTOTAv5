@@ -2,10 +2,9 @@
 
 **Secure Over-The-Air firmware updates for ESP32 over MQTT 5.0**
 
-[![Arduino Library](https://img.shields.io/badge/Arduino-Library-teal)](https://www.arduinolibraries.info/libraries/mqttot-av5)
+[![Arduino Library](https://img.shields.io/badge/Arduino-Library-teal)](https://github.com/JorgeGBeltre/MQTTOTAv5)
 [![Platform](https://img.shields.io/badge/platform-ESP32-blue)](https://www.espressif.com/en/products/socs/esp32)
-[![MQTT Version](https://img.shields.io/badge/MQTT-5.0-brightgreen)](https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html)
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![MQTT 5.0](https://img.shields.io/badge/MQTT-5.0-orange)](https://mqtt.org)
 
 ---
 
@@ -366,6 +365,10 @@ handle() → non-blocking restart
 
 ## Changelog
 
+### v1.0.1
+- Fixed a boot loop issue caused by calling hardware initialization (`ESP.getEfuseMac()`) in the global constructor.
+- Corrected `onMessageRaw` lambda signature to match `ESP32_MQTTv5` updates.
+
 ### v1.0.0
 - Initial release with full MQTT 5.0 feature set
 - SHA-256 incremental verification
@@ -395,16 +398,14 @@ If you encounter issues, please open an issue with broker version and configurat
 
 This library is licensed under the **MIT License**. See [LICENSE](LICENSE) for details.
 
----
-
 ## Contact
 
 Author: **Jorge Gaspar Beltre Rivera**  
-Project: **MQTTOTAv5 - For OTA Updates via MQTTv5/MQTTSv5**
+Project: MQTTOTAv5 - For OTA Updates via MQTTv5/MQTTSv5
 
- [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/JorgeGBeltre)
- [![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/jorge-gaspar-beltre-rivera/)
- [![Email](https://img.shields.io/badge/Email-EA4335?style=for-the-badge&logo=gmail&logoColor=white)](mailto:Jorgegaspar3021@gmail.com)
+- [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/JorgeGBeltre)
+- [![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/jorge-gaspar-beltre-rivera/)
+- [![Email](https://img.shields.io/badge/Email-EA4335?style=for-the-badge&logo=gmail&logoColor=white)](mailto:Jorgegaspar3021@gmail.com)
 
 ---
 
@@ -414,4 +415,4 @@ This project is developed independently.
 
 Even a small contribution helps me dedicate more time to development, testing, and releasing new features.
 
- [![Buy Me a Coffee](https://img.shields.io/badge/Buy_Me_a_Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.paypal.com/donate/?hosted_button_id=2VLA8BWT967LU)
+- [![Buy Me a Coffee](https://img.shields.io/badge/Buy_Me_a_Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.paypal.com/donate/?hosted_button_id=2VLA8BWT967LU)
