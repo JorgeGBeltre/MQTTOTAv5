@@ -38,7 +38,7 @@ void connectMQTT() {
 
     ota.begin(mqtt, DEVICE_NAME, FW_VERSION);
     ota.setSecurityKey(HMAC_KEY);
-    ota.requireSignature(true);
+    ota.setSecurityMode(SECURITY_HMAC_SHA256);
     ota.enableVersionCheck(true);
     ota.enableRollbackProtection(true);
     ota.setMaxRetries(MQTTOTAV5_MAX_RETRIES);

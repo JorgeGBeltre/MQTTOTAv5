@@ -55,7 +55,11 @@ void connectMQTT() {
     // Initialize OTA — signature is REQUIRED by default
     ota.begin(mqtt, DEVICE_NAME, FW_VERSION);
     ota.setSecurityKey(HMAC_KEY);
-    // ota.requireSignature(true); // default — explicit for clarity
+    ota.setSecurityMode(SECURITY_HMAC_SHA256);
+
+    // NOTE: To use ECDSA signature, you would do:
+    // ota.setSecurityMode(SECURITY_ECDSA_SHA256);
+    // ota.setPublicKey(MY_ECDSA_PUBLIC_KEY);
   });
 
   mqtt.onDisconnect([](MQTTReasonCode rc) {

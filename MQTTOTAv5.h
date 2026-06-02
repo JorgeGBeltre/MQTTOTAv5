@@ -32,6 +32,7 @@
 #include <WiFi.h>
 #include <mbedtls/md.h>
 #include <mbedtls/sha256.h>
+#include <mbedtls/pk.h>
 
 // Configuration macros  (override before including this header)
 
@@ -82,6 +83,14 @@ typedef std::function<void(uint8_t state)> OTAv5StateCb;
 typedef std::function<void(const String &method, const String &data)>
     OTAv5AuthCb;
 
+// OTA Security Modes
+enum OTAV5SecurityMode : uint8_t {
+  SECURITY_NONE = 0,         ///< No signature/hash required (Development mode)
+  SECURITY_SHA256 = 1,       ///< Requires SHA-256 hash match
+  SECURITY_HMAC_SHA256 = 2,  ///< Requires HMAC-SHA256 signature match
+  SECURITY_ECDSA_SHA256 = 3  ///< Requires ECDSA signature match using Public Key
+};
+
 // OTA States
 
 enum OTAv5State : uint8_t {
@@ -104,6 +113,7 @@ struct OTAv5MessageMeta {
   String firmwareVersion; ///< Target firmware version
   String sha256Hex;       ///< Expected SHA-256 (hex string, 64 chars)
   String hmacSig;         ///< Expected HMAC-SHA256 (hex string, 64 chars)
+  String ecdsaSig;        ///< Expected ECDSA-SHA256 signature (Base64)
   String targetModel;     ///< Target device model (empty = any)
   String correlationId;   ///< Correlation Data from MQTT properties
   String responseTopic;   ///< Response Topic from MQTT properties
@@ -120,6 +130,7 @@ struct OTAv5Context {
   String firmwareVersion;
   String expectedSha256;
   String expectedHmac;
+  String expectedEcdsa;
 
   // Chunked transfer state
   int currentPart = 0;
@@ -140,6 +151,8 @@ struct OTAv5Context {
   // Incremental SHA-256 context for chunked hash
   mbedtls_sha256_context sha256_ctx;
   bool sha256_active = false;
+  bool sha256_finished = false;
+  uint8_t finalDigest[MQTTOTAV5_SHA256_SIZE];
 
   // Incremental HMAC-SHA256 context
   mbedtls_md_context_t hmacCtx;
@@ -165,6 +178,7 @@ struct OTAv5ChunkData {
   // From MQTT User Properties
   String sha256Hex;
   String hmacSig;
+  String ecdsaSig;
   String targetModel;
   String correlationId;
   String responseTopic;
@@ -192,8 +206,10 @@ public:
              const String &otaTopic = "");
 
   void setSecurityKey(const char *key);
-
-  void requireSignature(bool required = true);
+  void setPublicKey(const char *pemKey);
+  
+  void setSecurityMode(OTAV5SecurityMode mode);
+  void requireSignature(bool required = true); // Deprecated, maps to SECURITY_SHA256 or SECURITY_NONE
 
   void onProgress(OTAv5ProgressCb cb);
   void onError(OTAv5ErrorCb cb);
@@ -239,6 +255,8 @@ private:
 
   uint8_t _hmacKey[64];
   size_t _hmacKeyLen = 0;
+  String _publicKey;
+  OTAV5SecurityMode _securityMode = SECURITY_SHA256;
   bool _requireSig = true;
 
   OTAv5Context _ctx;
@@ -271,10 +289,12 @@ private:
 
   static String _sha256Hex(const uint8_t *data, size_t len);
   String _hmacSha256Hex(const uint8_t *data, size_t len) const;
+  void _finishSha256Digest();
   bool _verifySha256Final(const String &expectedHex);
   bool _verifyHmac(const uint8_t *data, size_t len,
                    const String &expectedHex) const;
   bool _verifyHmacFinal(const String &expectedHex);
+  bool _verifyEcdsaFinal(const String &expectedSigBase64);
   static bool _verifyImageHeader(const uint8_t *data, size_t len);
 
   bool _checkVersionDiff(const String &newVer) const;

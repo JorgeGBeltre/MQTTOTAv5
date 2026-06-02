@@ -36,7 +36,7 @@ void connectMQTT() {
     ota.begin(mqtt, DEVICE_NAME, FW_VERSION);
 
     // Allow unsigned firmware for this basic example (development only!)
-    ota.requireSignature(false);
+    ota.setSecurityMode(SECURITY_NONE);
   });
 
   mqtt.onDisconnect([](MQTTReasonCode rc) {

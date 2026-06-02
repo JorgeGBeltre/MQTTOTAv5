@@ -8,7 +8,7 @@
 
 ---
 
-**MQTTOTAv5** is an SDK that revolutionizes firmware management for ESP32-based IoT devices. By leveraging the full power of the MQTT 5.0 protocol, it provides a seamless, secure, and scalable solution for Over-The-Air updates in distributed IoT ecosystems. Whether you're managing a handful of devices or thousands across global deployments, MQTTOTAv5 ensures reliable firmware delivery with enterprise-level security, incremental hash verification, HMAC authentication, and robust error handling — all without blocking your application's main loop.
+**MQTTOTAv5** is an SDK that revolutionizes firmware management for ESP32-based IoT devices. By leveraging the full power of the MQTT 5.0 protocol, it provides a seamless, secure, and scalable solution for Over-The-Air updates in distributed IoT ecosystems. Whether you're managing a handful of devices or thousands across global deployments, MQTTOTAv5 ensures reliable firmware delivery with enterprise-level security, incremental hash verification, HMAC authentication, asymmetric ECDSA signatures, and robust error handling — all without blocking your application's main loop.
 
 ## Table of Contents
 
@@ -48,8 +48,9 @@
 | **Transport** | `ESP32_MQTTv5` — native MQTT 5.0, no PubSubClient |
 | **SHA-256** | Full firmware hash via `mbedtls` (no extra deps) |
 | **Incremental hash** | SHA-256 updated per chunk — no temporary full buffer |
-| **HMAC-SHA256** | Obligatory signature in production; disable for dev |
-| **User Properties** | `sha256`, `hmac_sig`, `target_model` in MQTT 5.0 headers |
+| **HMAC-SHA256** | Symmetric signature via pre-shared key |
+| **ECDSA** | Asymmetric signature using Public Key (mbedtls) |
+| **User Properties** | `sha256`, `hmac_sig`, `ecdsa_sig`, `target_model` in MQTT 5.0 headers |
 | **Chunked OTA** | Arbitrary firmware size, direct `esp_ota_ops.h` API |
 | **Non-blocking** | No `delay()` — restart timer handled in `handle()` |
 | **Rollback** | `esp_ota_mark_app_valid_cancel_rollback()` on boot |
@@ -92,7 +93,7 @@ void setup() {
     mqtt.begin("192.168.1.100", 1883);
     mqtt.onConnect([]() {
         ota.begin(mqtt, "my-device", "1.0.0");
-        ota.requireSignature(false); // dev only
+        ota.setSecurityMode(SECURITY_NONE); // dev only
     });
     mqtt.connect("esp32-client");
 
@@ -158,11 +159,18 @@ Registers `onMessage` and `onAuth` handlers on the `mqtt` object and subscribes 
 ### Security
 
 ```cpp
-void setSecurityKey(const char* key);    // HMAC-SHA256 shared key
-void requireSignature(bool required);    // default: true (production)
+void setSecurityMode(OTAV5SecurityMode mode);
+void setSecurityKey(const char* key);    // For SECURITY_HMAC_SHA256
+void setPublicKey(const char* pemKey);   // For SECURITY_ECDSA_SHA256
 ```
 
-> **Warning**: `requireSignature(false)` should only be used during development. In production, pass `--key` to the Python publisher and call `setSecurityKey()` on the device. Without a valid HMAC, the OTA is rejected.
+Available modes:
+- `SECURITY_NONE`: Development mode, no signature/hash strictly required.
+- `SECURITY_SHA256`: Requires matching SHA-256 hash.
+- `SECURITY_HMAC_SHA256`: Requires HMAC-SHA256 signature using symmetric key.
+- `SECURITY_ECDSA_SHA256`: Requires ECDSA signature using asymmetric public key.
+
+> **Warning**: `SECURITY_NONE` should only be used during development. In production, use one of the strict modes and pass the necessary keys. Without a valid hash/signature in those modes, the OTA is rejected.
 
 ---
 
@@ -259,6 +267,7 @@ static bool   checkMemory(size_t requiredBytes);
 | `firmware_version` | Target version | `"1.0.1"` |
 | `sha256` | Hex SHA-256 of full firmware | `"a3f4..."` (64 chars) |
 | `hmac_sig` | Hex HMAC-SHA256 (full firmware) | `"9c1b..."` (64 chars) |
+| `ecdsa_sig` | Base64 ECDSA-SHA256 signature | `"MEUCIQD..."` |
 | `target_model` | Model filter (empty = any) | `"sensors-v2"` |
 
 #### MQTT 5.0 Properties
