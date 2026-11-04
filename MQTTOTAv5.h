@@ -1,5 +1,6 @@
 #ifndef MQTTOTAV5_H
 #define MQTTOTAV5_H
+#define MQTTOTAV5_VERSION "1.0.3"
 
 /**
  * @file MQTTOTAv5.h
@@ -20,7 +21,7 @@
  *  - Automatic rollback if boot confirmation fails
  *
  * @author Jorge Gaspar Beltre Rivera
- * @version 1.0.0
+ * @version 1.0.3
  */
 
 #include "ESP32_MQTTv5.h"
@@ -242,6 +243,7 @@ public:
   void setMaxRetries(int maxRetries);
   void enableVersionCheck(bool enable = true);
   void enableRollbackProtection(bool enable = true);
+  void enableWillMessage(bool enable = true, bool overrideExisting = false);
 
 private:
   ESP32_MQTTv5 *_mqtt = nullptr;
@@ -266,6 +268,8 @@ private:
   bool _autoReset = true;
   bool _versionCheck = true;
   bool _rollbackProtection = true;
+  bool _enableWill = true;
+  bool _overrideExistingWill = false;
   int _maxRetries = MQTTOTAV5_MAX_RETRIES;
 
   OTAv5ProgressCb _progressCb = nullptr;
@@ -344,5 +348,9 @@ inline void MQTTOTAv5::onError(OTAv5ErrorCb cb) { _errorCb = cb; }
 inline void MQTTOTAv5::onSuccess(OTAv5SuccessCb cb) { _successCb = cb; }
 inline void MQTTOTAv5::onStateChange(OTAv5StateCb cb) { _stateCb = cb; }
 inline void MQTTOTAv5::onAuthRequired(OTAv5AuthCb cb) { _authCb = cb; }
+inline void MQTTOTAv5::enableWillMessage(bool enable, bool overrideExisting) {
+  _enableWill = enable;
+  _overrideExistingWill = overrideExisting;
+}
 
 #endif // MQTTOTAV5_H

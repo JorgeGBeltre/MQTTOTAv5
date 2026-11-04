@@ -153,7 +153,7 @@ void begin(ESP32_MQTTv5& mqtt,
            const String& otaTopic = "");  // default: "ota/<deviceName>"
 ```
 
-Registers `onMessage` and `onAuth` handlers on the `mqtt` object and subscribes to the OTA topic. **Must be called after** `mqtt.connect()` returns (best inside `mqtt.onConnect()`).
+Registers `onMessageRaw` (exclusive to `otaTopic`, coexisting cleanly with `mqtt.onMessage()` for application topics) and `onAuth` handlers on the `mqtt` object and subscribes to the OTA topic. **Must be called after** `mqtt.connect()` returns (best inside `mqtt.onConnect()`).
 
 ---
 
@@ -374,6 +374,14 @@ handle() → non-blocking restart
 ---
 
 ## Changelog
+
+### v1.0.3
+- Coexists seamlessly with application `mqtt.onMessage()` handlers via `ESP32_MQTTv5::setRawExclusiveTopic()` (`ESP32_MQTTv5 >= 1.0.4`).
+- Filters incoming raw frames by `_otaTopic` / `MQTTOTAV5_SUB_ID` before allocating `String` payloads and populates `_ctx.lastMsgProps` from `_mqtt->lastInboundProperties()`, restoring full MQTT 5.0 User Property (`sha256`, `hmac_sig`, `ecdsa_sig`, `target_model`, `firmware_version`), `Correlation Data`, and `Response Topic` support.
+- Preserves any existing application Will message by default (`_mqtt->hasWill()`) and adds `enableWillMessage(enable, overrideExisting)`.
+
+### v1.0.2
+- Added asymmetric `SECURITY_ECDSA_SHA256` signature verification (`setPublicKey`, `setSecurityMode`) alongside SHA-256 and HMAC-SHA256 modes.
 
 ### v1.0.1
 - Fixed a boot loop issue caused by calling hardware initialization (`ESP.getEfuseMac()`) in the global constructor.

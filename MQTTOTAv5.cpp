@@ -107,18 +107,25 @@ void MQTTOTAv5::begin(ESP32_MQTTv5 &mqtt, const String &device,
 
   _setupWillMessage();
 
-  Serial.println("[MQTTOTAv5] NOTE: overrides existing onMessage callback.");
-  Serial.println(
-      "[MQTTOTAv5] Register other topic handlers via onMessage AFTER begin().");
+  _mqtt->setRawExclusiveTopic(_otaTopic);
+  Serial.printf("[MQTTOTAv5] Exclusive raw handler registered for '%s' (coexists with onMessage).\n",
+                _otaTopic.c_str());
   _mqtt->onMessageRaw([this](const String &topic, const uint8_t *payload,
                              size_t len, uint8_t qos, bool retain) {
-    _ctx.lastMsgProps.clear();
+    const MQTTProperties &inProps = _mqtt->lastInboundProperties();
+    const uint32_t subId = inProps.getSubscriptionIdentifier();
+    const bool forUs =
+        (topic == _otaTopic) || (subId > 0 && subId == MQTTOTAV5_SUB_ID);
+    if (!forUs)
+      return;
+    _ctx.lastMsgProps = inProps;
     MQTTMessage msg;
     msg.topic = topic;
     msg.payload = String((const char *)payload, len);
     msg.qos = qos;
     msg.retain = retain;
-    msg.hasSubscriptionIdentifier = false; // use topic filter in _onMQTTMessage
+    msg.subscriptionIdentifier = subId;
+    msg.hasSubscriptionIdentifier = (subId > 0);
     this->_onMQTTMessage(msg);
   });
 
@@ -207,6 +214,13 @@ void MQTTOTAv5::handle() {
 void MQTTOTAv5::_setupWillMessage() {
   if (!_mqtt)
     return;
+
+  if (!_enableWill)
+    return;
+  if (_mqtt->hasWill() && !_overrideExistingWill) {
+    Serial.println("[MQTTOTAv5] Preserving existing application Will message");
+    return;
+  }
 
   // Build JSON will payload
   StaticJsonDocument<256> doc;
