@@ -1,0 +1,32 @@
+{
+  "name": "MQTTOTAv5",
+  "version": "1.0.4",
+  "description": "Secure OTA firmware updates for ESP32 over MQTT v5.0 with SHA-256, HMAC-SHA256, ECDSA-SHA256, and chunked transfer.",
+  "keywords": [
+    "mqtt",
+    "mqtt5",
+    "mqttv5",
+    "ota",
+    "esp32",
+    "update",
+    "secure"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JorgeGBeltre/MQTTOTAv5"
+  },
+  "authors": [
+    {
+      "name": "Jorge Gaspar Beltre Rivera",
+      "maintainer": true
+    }
+  ],
+  "license": "MIT",
+  "frameworks": ["arduino"],
+  "platforms": ["espressif32"],
+  "headers": ["MQTTOTAv5.h"],
+  "dependencies": {
+    "ESP32_MQTTv5": ">=1.0.8",
+    "bblanchon/ArduinoJson": "^6.19.0"
+  }
+}

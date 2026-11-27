@@ -383,6 +383,14 @@ handle() → non-blocking restart
 ### v1.0.2
 - Added asymmetric `SECURITY_ECDSA_SHA256` signature verification (`setPublicKey`, `setSecurityMode`) alongside SHA-256 and HMAC-SHA256 modes.
 
+## Changelog
+
+### v1.0.4
+- Removed the premature top-of-handler `_ctx.inProgress` rejection in `_handleRawMessage()` so subsequent chunks (`part >= 2`) of active multi-chunk OTA transfers are processed normally while still rejecting unexpected `part == 1` re-entry during an active transfer.
+- Preserved `SECURITY_HMAC_SHA256` (and `SECURITY_HMAC_AND_ECDSA`) inside `requireSignature(true)` instead of downgrading to `SECURITY_SHA256_ONLY` when an HMAC key is configured.
+- Guarded `_base64DecodedSize()` against 0–1 byte inputs (`b64Len < 2`) to prevent `size_t` unsigned underflow and validated `chunk.totalParts > 0` before division in progress computation.
+- Synchronized `MQTTOTAV5_VERSION` (`MQTTOTAv5.h`), `library.properties`, and `library.json` to `1.0.4`.
+
 ### v1.0.1
 - Fixed a boot loop issue caused by calling hardware initialization (`ESP.getEfuseMac()`) in the global constructor.
 - Corrected `onMessageRaw` lambda signature to match `ESP32_MQTTv5` updates.

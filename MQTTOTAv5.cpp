@@ -44,7 +44,8 @@ size_t MQTTOTAv5::_base64DecodedSize(const char *src, size_t srcLen) {
     if (src[i - 1] == '=')
       padding++;
   }
-  return (srcLen / 4) * 3 - padding;
+  size_t raw = (srcLen / 4) * 3;
+  return raw > padding ? (raw - padding) : 0;
 }
 
 // Returns: number of decoded bytes, or -1 on error
@@ -168,7 +169,11 @@ void MQTTOTAv5::setSecurityKey(const char *key) {
 
 void MQTTOTAv5::requireSignature(bool required) {
   _requireSig = required;
-  _securityMode = required ? SECURITY_SHA256 : SECURITY_NONE;
+  if (!required) {
+    _securityMode = SECURITY_NONE;
+  } else if (_securityMode < SECURITY_HMAC_SHA256) {
+    _securityMode = (_hmacKeyLen > 0) ? SECURITY_HMAC_SHA256 : SECURITY_SHA256;
+  }
   Serial.printf("[MQTTOTAv5] Signature requirement: %s (mapped to mode %d)\n",
                 required ? "ON" : "OFF", _securityMode);
 }
@@ -352,11 +357,6 @@ bool MQTTOTAv5::_parseChunkFromJson(const String &payload,
 // Main OTA message dispatcher
 
 void MQTTOTAv5::_processOTAMessage(const MQTTMessage &msg) {
-  if (_ctx.inProgress) {
-    Serial.println("[MQTTOTAv5] OTA in progress — ignoring new message");
-    return;
-  }
-
   if (ESP.getFreeHeap() < (uint32_t)MQTTOTAV5_MIN_MEMORY) {
     Serial.printf("[MQTTOTAv5] Insufficient memory (%u free, need %d)\n",
                   ESP.getFreeHeap(), MQTTOTAV5_MIN_MEMORY);
@@ -379,19 +379,33 @@ void MQTTOTAv5::_processOTAMessage(const MQTTMessage &msg) {
                   chunk.errorMessage.c_str());
     _publishError(chunk.errorMessage, chunk.firmwareVersion,
                   chunk.responseTopic);
+    if (_ctx.inProgress)
+      _cleanupChunkedOTA(true);
     return;
   }
 
-  // Version check
-  if (_versionCheck && !_checkVersionDiff(chunk.firmwareVersion)) {
-    Serial.printf("[MQTTOTAv5] Version unchanged (%s) — skipping\n",
-                  chunk.firmwareVersion.c_str());
-    _publishError("Version unchanged", chunk.firmwareVersion,
+  if (chunk.totalParts <= 0 || chunk.partIndex <= 0 ||
+      chunk.partIndex > chunk.totalParts) {
+    _publishError("Invalid chunk part bounds", chunk.firmwareVersion,
                   chunk.responseTopic);
+    if (_ctx.inProgress)
+      _cleanupChunkedOTA(true);
     return;
   }
 
   if (chunk.partIndex == 1) {
+    if (_ctx.inProgress) {
+      Serial.println("[MQTTOTAv5] OTA already in progress — ignoring duplicate start chunk");
+      return;
+    }
+    // Version check only at start of stream
+    if (_versionCheck && !_checkVersionDiff(chunk.firmwareVersion)) {
+      Serial.printf("[MQTTOTAv5] Version unchanged (%s) — skipping\n",
+                    chunk.firmwareVersion.c_str());
+      _publishError("Version unchanged", chunk.firmwareVersion,
+                    chunk.responseTopic);
+      return;
+    }
 
     if (!_startChunkedOTA(chunk))
       return;

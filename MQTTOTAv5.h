@@ -1,6 +1,6 @@
 #ifndef MQTTOTAV5_H
 #define MQTTOTAV5_H
-#define MQTTOTAV5_VERSION "1.0.3"
+#define MQTTOTAV5_VERSION "1.0.4"
 
 /**
  * @file MQTTOTAv5.h
@@ -21,7 +21,7 @@
  *  - Automatic rollback if boot confirmation fails
  *
  * @author Jorge Gaspar Beltre Rivera
- * @version 1.0.3
+ * @version 1.0.4
  */
 
 #include "ESP32_MQTTv5.h"
